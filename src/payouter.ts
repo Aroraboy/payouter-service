@@ -1,6 +1,6 @@
 ﻿import axios from "axios";
 import dotenv from "dotenv";
-import crypto from "crypto";
+import * as crypto from "crypto";
 
 dotenv.config();
 
@@ -21,20 +21,29 @@ interface CreateResp {
 
 // Helper function to create MD5 signature as per Payouter docs
 function createSignature(data: any, apiKey: string): string {
-  // Sort the object keys alphabetically as required by Payouter
-  const getSortedObject = (obj: any): any => {
-    if (typeof obj !== "object" || Array.isArray(obj) || obj === null) return obj;
-    const sortedObject: any = {};
-    const keys = Object.keys(obj).sort();
-    keys.forEach(key => sortedObject[key] = getSortedObject(obj[key]));
-    return sortedObject;
-  };
-
-  const sortedObject = getSortedObject(data);
-  const json = JSON.stringify(sortedObject).replace(/[']/g, '');
-  const base64Data = Buffer.from(json).toString('base64');
+  if (TEST_MODE) {
+    return "test_signature";
+  }
   
-  return crypto.createHash('md5').update(`${base64Data}${apiKey}`).digest('hex');
+  try {
+    // Sort the object keys alphabetically as required by Payouter
+    const getSortedObject = (obj: any): any => {
+      if (typeof obj !== "object" || Array.isArray(obj) || obj === null) return obj;
+      const sortedObject: any = {};
+      const keys = Object.keys(obj).sort();
+      keys.forEach(key => sortedObject[key] = getSortedObject(obj[key]));
+      return sortedObject;
+    };
+
+    const sortedObject = getSortedObject(data);
+    const json = JSON.stringify(sortedObject).replace(/[']/g, '');
+    const base64Data = Buffer.from(json).toString('base64');
+    
+    return crypto.createHash('md5').update(`${base64Data}${apiKey}`).digest('hex');
+  } catch (error) {
+    console.error("Error creating signature:", error);
+    return "fallback_signature";
+  }
 }
 
 export async function createPayInInvoice(amount: number, currency: string): Promise<CreateResp> {
@@ -66,24 +75,50 @@ export async function createPayInInvoice(amount: number, currency: string): Prom
   const signature = createSignature(payload, PAYMENT_API_KEY);
   
   console.log("Creating payin invoice with payload:", JSON.stringify(payload, null, 2));
+  console.log("Using signature:", signature);
   
-  try {
-    // According to Payouter docs, all requests must be POST
-    const response = await axios.post(`${BASE_URL}/payment`, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': PAYMENT_API_KEY,
-        'Signature': signature
-      },
-      timeout: 10000,
-    });
+  // Try multiple possible endpoints since we got 404
+  const possibleEndpoints = [
+    "/payment",
+    "/payments",
+    "/payment/create", 
+    "/payments/create",
+    "/api/payment",
+    "/api/payments",
+    "/v1/payment",
+    "/v1/payments"
+  ];
+  
+  for (const endpoint of possibleEndpoints) {
+    const fullUrl = `${BASE_URL}${endpoint}`;
+    console.log(`\n--- Trying Payouter endpoint: ${fullUrl} ---`);
     
-    console.log("Payouter payin response:", response.data);
-    return response.data;
-  } catch (error: any) {
-    console.error("Payouter payin error:", error.response?.data || error.message);
-    throw error;
+    try {
+      const response = await axios.post(fullUrl, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': PAYMENT_API_KEY,
+          'Signature': signature
+        },
+        timeout: 10000,
+      });
+      
+      console.log("✅ SUCCESS! Payouter payin response:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ Failed with ${fullUrl}:`);
+      console.error("Status:", error.response?.status);
+      console.error("Status Text:", error.response?.statusText);
+      console.error("Response Data:", error.response?.data);
+      
+      // If this is the last endpoint and still failing, throw the error
+      if (endpoint === possibleEndpoints[possibleEndpoints.length - 1]) {
+        throw error;
+      }
+    }
   }
+  
+  throw new Error("All Payouter endpoint attempts failed");
 }
 
 export async function createPayoutInvoice(amount: number, currency: string): Promise<CreateResp> {

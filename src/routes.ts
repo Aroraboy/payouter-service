@@ -10,10 +10,19 @@ const router = Router();
 router.get("/health", (_req, res) => res.json({ ok: true, ts: new Date().toISOString() }));
 
 router.post("/invoice/payin", async (req: Request, res: Response) => {
+  console.log("🔵 POST /invoice/payin received");
+  console.log("Request body:", req.body);
+  
   try {
     const { amount, currency } = req.body;
-    if (typeof amount !== "number" || !currency) return res.status(400).json({ error: "amount (number) and currency required" });
+    console.log("Extracted amount:", amount, "currency:", currency);
+    
+    if (typeof amount !== "number" || !currency) {
+      console.log("❌ Validation failed: amount or currency invalid");
+      return res.status(400).json({ error: "amount (number) and currency required" });
+    }
 
+    console.log("✅ Validation passed, calling createPayInInvoice...");
     const external = await createPayInInvoice(amount, currency);
     const externalId = external?.id ?? external?.invoiceId;
     const id = externalId ?? uuidv4();
