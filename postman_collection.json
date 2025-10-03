@@ -1,0 +1,103 @@
+{
+  "info": {
+    "name": "Payouter Service API",
+    "_postman_id": "e38c3d7d-1f53-44a3-9a9f-123456789abc",
+    "description": "Collection for testing the Payouter Node.js service endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create PayIn Invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 100,\n  \"currency\": \"USD\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/invoice/payin",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["invoice", "payin"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Payout Invoice",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 50,\n  \"currency\": \"USD\",\n  \"recipient\": \"user_wallet_or_bank\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/invoice/payout",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["invoice", "payout"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check Transaction Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/status/{{invoiceId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["status", "{{invoiceId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Simulate Webhook",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"invoiceId\": \"inv_123\",\n  \"status\": \"SUCCESS\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/webhook/payouter",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["webhook", "payouter"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "invoiceId",
+      "value": "inv_123"
+    }
+  ]
+}

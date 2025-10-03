@@ -1,0 +1,47 @@
+[
+  {
+    "id": "test_payin_1759504714359",
+    "externalId": "test_payin_1759504714359",
+    "type": "payin",
+    "amount": 100,
+    "currency": "USD",
+    "createdAt": "2025-10-03T15:18:34.359Z",
+    "status": "PENDING",
+    "meta": {
+      "id": "test_payin_1759504714359",
+      "invoiceId": "test_payin_1759504714359",
+      "status": "pending",
+      "amount": 100,
+      "currency": "USD"
+    }
+  },
+  {
+    "id": "test_payout_1759505608215",
+    "externalId": "test_payout_1759505608215",
+    "type": "payout",
+    "amount": 50,
+    "currency": "USD",
+    "createdAt": "2025-10-03T15:33:28.215Z",
+    "status": "PENDING",
+    "meta": {
+      "id": "test_payout_1759505608215",
+      "invoiceId": "test_payout_1759505608215",
+      "status": "pending",
+      "amount": 50,
+      "currency": "USD"
+    }
+  },
+  {
+    "id": "inv_123",
+    "externalId": "inv_123",
+    "type": "payin",
+    "amount": 0,
+    "currency": "USD",
+    "createdAt": "2025-10-03T15:33:49.246Z",
+    "status": "SUCCESS",
+    "meta": {
+      "invoiceId": "inv_123",
+      "status": "SUCCESS"
+    }
+  }
+]
